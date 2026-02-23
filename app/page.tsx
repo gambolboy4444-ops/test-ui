@@ -7,7 +7,6 @@ export default function App() {
   const [torusCash, setTorusCash] = useState(0);
   const [isOnline, setIsOnline] = useState(false);
   
-  // 💡 Vercelデプロイ後、環境設定で ngrok URL をここに紐付けます
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   const sync = useCallback(async () => {
@@ -58,8 +57,6 @@ export default function App() {
       <button 
         onClick={pulse} 
         style={{width:'100%',maxWidth:'400px',padding:'30px',borderRadius:'25px',fontSize:'24px',fontWeight:'900',backgroundColor:'#fff',color:'#020617',border:'none',cursor:'pointer',boxShadow:'0 8px 0 #cbd5e1',transition:'all 0.1s'}}
-        onMouseDown={(e) => e.currentTarget.style.transform = 'translateY(4px)'}
-        onMouseUp={(e) => e.currentTarget.style.transform = 'translateY(0)'}
       >
         SINGLE PULSE
       </button>
