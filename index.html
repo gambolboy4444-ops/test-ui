@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>TORUS GENESIS 1.0</title>
+    <style>
+        body { background-color:#020617; color:#f8fafc; font-family:monospace; display:flex; flex-direction:column; align-items:center; padding:20px; margin:0; }
+        header { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
+        .card { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:40px; text-align:center; margin-bottom:15px; }
+        button { width:100%; max-width:400px; padding:30px; border-radius:25px; font-size:24px; font-weight:900; background-color:#fff; color:#020617; border:none; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <header><div>TORUS GENESIS 1.0</div><div style="color:#34d399;">● ONLINE</div></header>
+    <div class="card">
+        <div style="font-size:10px; color:#3b82f6; margin-bottom:10px;">CORE_COUNT ❤️</div>
+        <div style="font-size:56px;" id="torusCash">0</div>
+    </div>
+    <button onclick="document.getElementById('torusCash').innerText = parseInt(document.getElementById('torusCash').innerText)+1">SINGLE PULSE</button>
+</body>
+</html>
