@@ -5,34 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TORUS GENESIS 1.0</title>
     <style>
-        body { background-color:#020617; min-height:100vh; color:#f8fafc; font-family:monospace; display:flex; flex-direction:column; align-items:center; padding:20px; margin:0; }
-        /* ヘッダー：TORUSロゴとステータス */
-        header { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; box-sizing: border-box; }
-        .status { font-size:10px; font-weight:900; }
-        .online { color:#34d399; }
-        /* メインカード：カウント表示 */
-        .card { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:40px; text-align:center; margin-bottom:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box; }
-        .count { font-size:56px; font-weight:900; text-shadow:0 0 20px rgba(59,130,246,0.3); }
-        /* ボタン：SINGLE PULSE */
-        button { width:100%; max-width:400px; padding:30px; border-radius:25px; font-size:24px; font-weight:900; background-color:#fff; color:#020617; border:none; cursor:pointer; box-shadow:0 8px 0 #cbd5e1; transition: 0.1s; }
-        button:active { transform: translateY(4px); box-shadow:0 4px 0 #cbd5e1; }
-        /* フッター */
-        footer { margin-top:30px; font-size:8px; color:#334155; letter-spacing:5px; text-align:center; }
+        :root {
+            --bg-deep: #020617;
+            --card-bg: #0f172a;
+            --border-color: #1e293b;
+            --accent-blue: #3b82f6;
+            --status-green: #34d399;
+            --text-main: #f8fafc;
+            --text-dim: #334155;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', ui-monospace, SFMono-Regular, Menlo, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* ヘッダー：引き継ぎ書のレイアウトを再現 */
+        header {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo { font-weight: 900; letter-spacing: 0.15em; font-size: 14px; }
+        .status-box { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 900; }
+        .dot { width: 8px; height: 8px; background-color: var(--status-green); border-radius: 50%; box-shadow: 0 0 8px var(--status-green); }
+
+        /* メインカード：原型に近いデザイン */
+        .card {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .label {
+            font-size: 10px;
+            color: var(--accent-blue);
+            font-weight: 900;
+            margin-bottom: 16px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .count {
+            font-size: 84px;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+            margin-bottom: 10px;
+        }
+
+        /* ボタン：SINGLE PULSE の質感を復元 */
+        .pulse-btn {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            border-radius: 100px;
+            font-size: 20px;
+            font-weight: 900;
+            background-color: #ffffff;
+            color: #020617;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #cbd5e1;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .pulse-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 0.5em;
+            text-align: center;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
     <header>
-        <div style="font-weight:900; letter-spacing:2px;">TORUS GENESIS 1.0</div>
-        <div class="status online">● ONLINE</div>
+        <div class="logo">TORUS GENESIS 1.0</div>
+        <div class="status-box">
+            <div class="dot"></div>
+            <span style="color: var(--status-green)">ONLINE</span>
+        </div>
     </header>
 
     <div class="card">
-        <div style="font-size:10px; color:#3b82f6; font-weight:900; margin-bottom:10px; letter-spacing:3px;">CORE_COUNT ❤️</div>
+        <div class="label">Core_Count ❤️</div>
         <div class="count" id="torusCash">0</div>
     </div>
 
-    <button onclick="document.getElementById('torusCash').innerText = parseInt(document.getElementById('torusCash').innerText)+1">SINGLE PULSE</button>
+    <button class="pulse-btn" onclick="document.getElementById('torusCash').innerText = parseInt(document.getElementById('torusCash').innerText)+1">
+        Single Pulse
+    </button>
 
-    <footer>AMAZON-CLASS LOAD BALANCING ACTIVE</footer>
+    <footer>Amazon-Class Load Balancing Active</footer>
 </body>
 </html>
