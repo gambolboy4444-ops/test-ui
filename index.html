@@ -1,33 +1,147 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TORUS GENESIS 1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TORUS SATELLITE V20.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color:#020617; min-height:100vh; color:#f8fafc; font-family:monospace; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; margin:0; }
-        header { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; box-sizing: border-box; }
-        .logo { font-weight:900; letter-spacing:2px; font-size:14px; }
-        .status { font-size:10px; font-weight:900; color:#34d399; display:flex; align-items:center; gap:8px; }
-        .dot { width:8px; height:8px; background-color:#34d399; border-radius:50%; box-shadow:0 0 10px #34d399; }
-        .card { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:24px; padding:60px 20px; text-align:center; margin-bottom:20px; box-shadow:0 20px 50px rgba(0,0,0,0.5); box-sizing: border-box; }
-        .label { font-size:10px; color:#3b82f6; font-weight:900; margin-bottom:20px; letter-spacing:4px; }
-        .count { font-size:72px; font-weight:900; text-shadow:0 0 30px rgba(59,130,246,0.4); }
-        button { width:100%; max-width:400px; padding:28px; border-radius:100px; font-size:22px; font-weight:900; background-color:#fff; color:#020617; border:none; cursor:pointer; box-shadow:0 8px 0 #cbd5e1; transition: 0.1s; }
-        button:active { transform: translateY(4px); box-shadow:0 4px 0 #cbd5e1; }
-        footer { margin-top:40px; font-size:8px; color:#334155; letter-spacing:5px; text-align:center; }
+        body { background-color: #020617; color: #f8fafc; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        .neon-text { text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+        .burst-active { background-color: #1e293b !important; color: #475569 !important; box-shadow: none !important; transform: translateY(4px); }
+        .scanline { width: 100%; height: 2px; background: rgba(59, 130, 246, 0.2); position: absolute; top: 0; left: 0; pointer-events: none; animation: scan 4s linear infinite; }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
     </style>
 </head>
-<body>
-    <header>
-        <div class="logo">TORUS GENESIS 1.0</div>
-        <div class="status"><div class="dot"></div>ONLINE</div>
+<body class="flex flex-col items-center p-6 min-h-screen overflow-x-hidden">
+    <div class="scanline"></div>
+
+    <header class="w-full max-w-md bg-slate-900/80 border border-slate-800 p-4 rounded-3xl flex justify-between items-center mb-4 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-black text-blue-500 border border-slate-700">T</div>
+            <div>
+                <div class="text-[8px] text-slate-500 font-bold tracking-widest uppercase">Satellite UI</div>
+                <div class="text-sm font-black text-white">TORUS V20.1</div>
+            </div>
+        </div>
+        <div id="status-tag" class="px-3 py-1 rounded-full border border-red-500/50 text-red-400 text-[10px] font-black">OFFLINE</div>
     </header>
-    <div class="card">
-        <div class="label">CORE_COUNT ❤️</div>
-        <div class="count" id="torusCash">0</div>
+
+    <div class="grid grid-cols-2 gap-3 w-full max-w-md mb-4">
+        <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-3xl text-center">
+            <div class="text-[8px] text-blue-400 font-black mb-1 uppercase tracking-widest">Core Cash ❤️</div>
+            <div id="core-cash" class="text-3xl font-black">0</div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-3xl text-center">
+            <div class="text-[8px] text-emerald-400 font-black mb-1 uppercase tracking-widest">Nodes ❤️</div>
+            <div id="node-count" class="text-3xl font-black">0</div>
+        </div>
     </div>
-    <button onclick="document.getElementById('torusCash').innerText = parseInt(document.getElementById('torusCash').innerText)+1">SINGLE PULSE</button>
-    <footer>AMAZON-CLASS LOAD BALANCING ACTIVE</footer>
+
+    <button id="btn-burst" class="w-full max-w-md py-12 bg-white text-slate-950 rounded-[40px] text-3xl font-black uppercase tracking-widest shadow-[0_12px_0_#cbd5e1] active:translate-y-1 active:shadow-none transition-all mb-4">
+        ⚡ Burst
+    </button>
+
+    <button id="btn-pulse" class="w-full max-w-md py-8 bg-slate-900 border border-slate-800 rounded-3xl text-xl font-black text-white uppercase tracking-[0.4em] neon-text active:bg-slate-800 transition-all mb-4">
+        Single Pulse
+    </button>
+
+    <div class="flex gap-3 w-full max-w-md mb-4">
+        <button id="btn-stop" class="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-red-500 transition-all">Stop</button>
+        <button id="btn-reset" class="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-blue-500 transition-all">Reset</button>
+    </div>
+
+    <div class="w-full max-w-md bg-slate-900/40 border border-slate-800 p-4 rounded-3xl mb-4">
+        <label class="text-[8px] text-slate-600 font-black block mb-2 uppercase tracking-widest">Gateway Address (ngrok/local)</label>
+        <input id="input-url" type="text" placeholder="https://..." class="w-full bg-black/60 border border-slate-700 rounded-xl p-4 text-blue-400 font-bold outline-none focus:border-blue-500 text-xs">
+    </div>
+
+    <div class="w-full max-w-md bg-black/60 border border-slate-800 rounded-3xl p-5 h-40 overflow-y-auto shadow-inner">
+        <div class="text-[10px] font-black text-slate-700 mb-3 uppercase tracking-widest">Telemetry Feed</div>
+        <div id="log-container" class="space-y-1 text-[10px] font-mono text-slate-500"></div>
+    </div>
+
+    <script>
+        let isBursting = false;
+        let burstInterval = null;
+        let nodeLocalCount = 0;
+
+        const dom = {
+            url: document.getElementById('input-url'),
+            core: document.getElementById('core-cash'),
+            node: document.getElementById('node-count'),
+            logs: document.getElementById('log-container'),
+            status: document.getElementById('status-tag'),
+            btnBurst: document.getElementById('btn-burst'),
+            btnPulse: document.getElementById('btn-pulse')
+        };
+
+        function addLog(msg, type='SYSTEM') {
+            const entry = document.createElement('div');
+            entry.className = 'flex justify-between border-b border-white/5 pb-1';
+            entry.innerHTML = `<span>${msg}</span><span class="opacity-30">${new Date().toLocaleTimeString()}</span>`;
+            dom.logs.prepend(entry);
+        }
+
+        async function sendPulse(silent = false) {
+            const url = dom.url.value.replace(/\/$/, "");
+            if(!url) return;
+
+            try {
+                const res = await fetch(`${url}/api/ingress`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'INGRESS', roomId: 'TORUS-01', timestamp: Date.now() }),
+                    cache: 'no-store'
+                });
+                
+                if(res.ok) {
+                    const data = await res.json();
+                    dom.status.innerText = 'ONLINE';
+                    dom.status.style.color = '#34d399';
+                    dom.status.style.borderColor = '#10b98155';
+                    
+                    if(data.current_count !== undefined) {
+                        dom.core.innerText = data.current_count;
+                    }
+                    nodeLocalCount++;
+                    dom.node.innerText = nodeLocalCount;
+                    if(!silent) addLog('✅ PULSE_ACCEPTED');
+                }
+            } catch (e) {
+                dom.status.innerText = 'OFFLINE';
+                dom.status.style.color = '#f87171';
+                if(!silent) addLog('❌ CONN_ERROR', 'ERROR');
+            }
+        }
+
+        dom.btnPulse.onclick = () => sendPulse();
+
+        dom.btnBurst.onclick = () => {
+            if(isBursting) return;
+            isBursting = true;
+            dom.btnBurst.classList.add('burst-active');
+            dom.btnBurst.innerText = '⚡ Bursting...';
+            addLog('🚀 BURST_MODE_ENGAGED');
+            burstInterval = setInterval(() => sendPulse(true), 1000);
+        };
+
+        document.getElementById('btn-stop').onclick = () => {
+            isBursting = false;
+            clearInterval(burstInterval);
+            dom.btnBurst.classList.remove('burst-active');
+            dom.btnBurst.innerText = '⚡ Burst';
+            addLog('🛑 BURST_HALTED');
+        };
+
+        document.getElementById('btn-reset').onclick = () => {
+            if(!confirm('Reset System Statistics?')) return;
+            dom.core.innerText = '0';
+            dom.node.innerText = '0';
+            nodeLocalCount = 0;
+            dom.logs.innerHTML = '';
+            addLog('♻️ SYSTEM_PURGED');
+        };
+    </script>
 </body>
 </html>
