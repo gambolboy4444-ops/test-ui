@@ -2,20 +2,30 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TORUS GENESIS 1.0</title>
     <style>
-        body { background-color:#020617; color:#f8fafc; font-family:monospace; display:flex; flex-direction:column; align-items:center; padding:20px; margin:0; }
+        body { background-color:#020617; min-height:100vh; color:#f8fafc; font-family:monospace; display:flex; flex-direction:column; align-items:center; padding:20px; margin:0; }
         header { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:15px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
-        .card { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:40px; text-align:center; margin-bottom:15px; }
-        button { width:100%; max-width:400px; padding:30px; border-radius:25px; font-size:24px; font-weight:900; background-color:#fff; color:#020617; border:none; cursor:pointer; }
+        .status { font-size:10px; font-weight:900; }
+        .online { color:#34d399; }
+        .card { width:100%; max-width:400px; background-color:#0f172a; border:1px solid #1e293b; border-radius:15px; padding:40px; text-align:center; margin-bottom:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+        .count { font-size:56px; font-weight:900; text-shadow:0 0 20px rgba(59,130,246,0.3); }
+        button { width:100%; max-width:400px; padding:30px; border-radius:25px; font-size:24px; font-weight:900; background-color:#fff; color:#020617; border:none; cursor:pointer; box-shadow:0 8px 0 #cbd5e1; transition: 0.1s; }
+        button:active { transform: translateY(4px); box-shadow:0 4px 0 #cbd5e1; }
+        footer { margin-top:30px; font-size:8px; color:#334155; letter-spacing:5px; text-align:center; }
     </style>
 </head>
 <body>
-    <header><div>TORUS GENESIS 1.0</div><div style="color:#34d399;">● ONLINE</div></header>
+    <header>
+        <div style="font-weight:900; letter-spacing:2px;">TORUS GENESIS 1.0</div>
+        <div class="status online">● ONLINE</div>
+    </header>
     <div class="card">
-        <div style="font-size:10px; color:#3b82f6; margin-bottom:10px;">CORE_COUNT ❤️</div>
-        <div style="font-size:56px;" id="torusCash">0</div>
+        <div style="font-size:10px; color:#3b82f6; font-weight:900; margin-bottom:10px; letter-spacing:3px;">CORE_COUNT ❤️</div>
+        <div class="count" id="torusCash">0</div>
     </div>
     <button onclick="document.getElementById('torusCash').innerText = parseInt(document.getElementById('torusCash').innerText)+1">SINGLE PULSE</button>
+    <footer>AMAZON-CLASS LOAD BALANCING ACTIVE</footer>
 </body>
 </html>
