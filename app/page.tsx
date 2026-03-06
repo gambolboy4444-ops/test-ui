@@ -1,92 +1,139 @@
 'use client';
+import { useState, useEffect, useRef } from 'react';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+export default function TorusSatellite() {
+  const [cash, setCash] = useState(0);
+  const [nodes, setNodes] = useState(0);
+  const [url, setUrl] = useState('');
+  const [status, setStatus] = useState('OFFLINE');
+  const [logs, setLogs] = useState<{msg: string, time: string}[]>([]);
+  const [isBursting, setIsBursting] = useState(false);
+  const burstInterval = useRef<NodeJS.Timeout | null>(null);
 
-type LogEntry = { id: string; type: string; name: string; timestamp: number; };
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString();
+    setLogs(prev => [{ msg, time }, ...prev].slice(0, 20));
+  };
 
-export default function App() {
-  const [identity, setIdentity] = useState('TORUS_OPERATOR');
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isBurstActive, setIsBurstActive] = useState(false);
-  const [isOnline, setIsOnline] = useState(false);
-  // 🚀 クラウド上の「脳」の住所を固定
-  const CORE_URL = "https://torus-genesis-core.vercel.app"; 
-  const [torusCash, setTorusCash] = useState(0);
-  const [nodeCount, setNodeCount] = useState(0);
-  const timerRef = useRef<any>(null);
-
-  const addLog = useCallback((type: string, name: string) => {
-    const newLog = { id: Math.random().toString(36).substring(7), type, name, timestamp: Date.now() };
-    setLogs(prev => [newLog, ...prev].slice(0, 10));
-  }, []);
-
-  const dispatchToCore = useCallback(async (targetName: string, silent = false) => {
+  const sendPulse = async (silent = false) => {
+    if (!url) return;
+    const cleanUrl = url.replace(/\/$/, "");
     try {
-      const res = await fetch(`${CORE_URL}/api/ingress`, {
+      const res = await fetch(`${cleanUrl}/api/ingress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'INGRESS', roomId: 'TORUS-SYNC-01', payload: { name: targetName }, timestamp: Date.now() }),
+        body: JSON.stringify({ type: 'INGRESS', roomId: 'TORUS-01', timestamp: Date.now() }),
       });
       if (res.ok) {
         const data = await res.json();
-        setIsOnline(true);
-        // 🧠 サーバーの「真実」のみを反映（UIでの捏造を禁止）
-        if (data.current_count !== undefined) setTorusCash(data.current_count);
-        setNodeCount(v => v + 1);
-        if (!silent) addLog('SYSTEM', "✅ CORE_SYNC");
+        setStatus('ONLINE');
+        if (data.current_count !== undefined) setCash(data.current_count);
+        setNodes(prev => prev + 1);
+        if (!silent) addLog('✅ PULSE_ACCEPTED');
       }
     } catch (e) {
-      if (!silent) { setIsOnline(false); addLog('ERROR', "❌ LOST"); }
+      setStatus('OFFLINE');
+      if (!silent) addLog('❌ CONN_ERROR');
     }
-  }, [addLog]);
+  };
 
-  useEffect(() => {
-    if (isBurstActive) {
-      timerRef.current = setInterval(() => dispatchToCore(`NODE_${Math.random().toString(16).substring(10)}`, true), 1000);
+  const toggleBurst = () => {
+    if (isBursting) {
+      if (burstInterval.current) clearInterval(burstInterval.current);
+      setIsBursting(false);
+      addLog('🛑 BURST_HALTED');
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      setIsBursting(true);
+      addLog('🚀 BURST_MODE_ENGAGED');
+      burstInterval.current = setInterval(() => sendPulse(true), 1000);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isBurstActive, dispatchToCore]);
+  };
+
+  const resetSystem = () => {
+    if (!confirm('Reset System Statistics?')) return;
+    setCash(0);
+    setNodes(0);
+    setLogs([]);
+    addLog('♻️ SYSTEM_PURGED');
+  };
 
   return (
-    <div style={{backgroundColor:'#020617',minHeight:'100vh',color:'#f8fafc',fontFamily:'monospace',display:'flex',flexDirection:'column',alignItems:'center',padding:'24px'}}>
-      <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',width:'100%',maxWidth:'440px',backgroundColor:'#0f172a',border:'1px solid #1e293b',borderRadius:'24px',padding:'16px 24px',marginBottom:'16px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
-          <div style={{width:'40px',height:'40px',backgroundColor:'#1e293b',borderRadius:'12px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',fontWeight:'bold'}}>T</div>
+    <div className="flex flex-col items-center p-6 min-h-screen bg-[#020617] text-[#f8fafc] font-mono overflow-x-hidden">
+      {/* Header */}
+      <header className="w-full max-w-md bg-slate-900/80 border border-slate-800 p-4 rounded-3xl flex justify-between items-center mb-4 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center font-black text-blue-500 border border-slate-700">T</div>
           <div>
-            <div style={{fontSize:'8px',color:'#64748b',fontWeight:'bold'}}>SATELLITE UI</div>
-            <div style={{fontWeight:'900',fontSize:'14px'}}>TORUS V17.0</div>
+            <div className="text-[8px] text-slate-500 font-bold tracking-widest uppercase">Satellite UI</div>
+            <div className="text-sm font-black text-white">TORUS V20.2</div>
           </div>
         </div>
-        <div style={{padding:'4px 12px',borderRadius:'99px',border:`1px solid ${isOnline?'#10b98155':'#ef444455'}`,color:isOnline?'#34d399':'#f87171',fontSize:'10px',fontWeight:'900'}}>
-          {isOnline?'ONLINE':'OFFLINE'}
+        <div className={`px-3 py-1 rounded-full border text-[10px] font-black ${status === 'ONLINE' ? 'border-emerald-500/50 text-emerald-400' : 'border-red-500/50 text-red-400'}`}>
+          {status}
         </div>
       </header>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',width:'100%',maxWidth:'440px',marginBottom:'16px'}}>
-        <div style={{backgroundColor:'#0f172a',border:'1px solid #1e293b',borderRadius:'24px',padding:'24px',textAlign:'center'}}>
-          <div style={{fontSize:'10px',color:'#3b82f6',fontWeight:'900',marginBottom:'8px'}}>CORE_CASH ❤️</div>
-          <div style={{fontSize:'32px',fontWeight:'900'}}>{torusCash.toLocaleString()}</div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 w-full max-w-md mb-4">
+        <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-3xl text-center">
+          <div className="text-[8px] text-blue-400 font-black mb-1 uppercase tracking-widest">Core Cash ❤️</div>
+          <div className="text-3xl font-black">{cash}</div>
         </div>
-        <div style={{backgroundColor:'#0f172a',border:'1px solid #1e293b',borderRadius:'24px',padding:'24px',textAlign:'center'}}>
-          <div style={{fontSize:'10px',color:'#10b981',fontWeight:'900',marginBottom:'8px'}}>NODES ❤️</div>
-          <div style={{fontSize:'32px',fontWeight:'900'}}>{nodeCount.toLocaleString()}</div>
+        <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-3xl text-center">
+          <div className="text-[8px] text-emerald-400 font-black mb-1 uppercase tracking-widest">Nodes ❤️</div>
+          <div className="text-3xl font-black">{nodes}</div>
         </div>
       </div>
 
-      <button onClick={()=>setIsBurstActive(true)} disabled={isBurstActive} style={{width:'100%',maxWidth:'440px',padding:'60px 0',borderRadius:'32px',fontSize:'32px',fontWeight:'900',cursor:isBurstActive?'default':'pointer',backgroundColor:isBurstActive?'#1e293b':'#ffffff',color:isBurstActive?'#475569':'#020617',border:'none',boxShadow:isBurstActive?'none':'0 12px 0 #cbd5e1',marginBottom:'16px'}}>⚡ BURST</button>
+      {/* Burst Button */}
+      <button 
+        onClick={toggleBurst}
+        className={`w-full max-w-md py-12 rounded-[40px] text-3xl font-black uppercase tracking-widest transition-all mb-4 ${
+          isBursting 
+          ? 'bg-slate-800 text-slate-500 translate-y-1 shadow-none' 
+          : 'bg-white text-slate-950 shadow-[0_12px_0_#cbd5e1] active:translate-y-1 active:shadow-none'
+        }`}
+      >
+        {isBursting ? '⚡ Bursting...' : '⚡ Burst'}
+      </button>
 
-      <button onClick={()=>dispatchToCore(identity)} style={{width:'100%',maxWidth:'440px',padding:'32px 0',borderRadius:'24px',fontSize:'24px',fontWeight:'900',border:'1px solid #1e293b',backgroundColor:'#0f172a',color:'#ffffff',cursor:'pointer',letterSpacing:'8px',textShadow:'0 0 20px #ffffff',marginBottom:'16px'}}>SINGLE PULSE</button>
+      {/* Single Pulse */}
+      <button 
+        onClick={() => sendPulse()}
+        className="w-full max-w-md py-8 bg-slate-900 border border-slate-800 rounded-3xl text-xl font-black text-white uppercase tracking-[0.4em] active:bg-slate-800 transition-all mb-4"
+        style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.8)' }}
+      >
+        Single Pulse
+      </button>
 
-      <div style={{display:'flex',gap:'16px',width:'100%',maxWidth:'440px',marginBottom:'16px'}}>
-        <button onClick={()=>setIsBurstActive(false)} disabled={!isBurstActive} style={{padding:'24px 0',borderRadius:'16px',fontSize:'12px',fontWeight:'bold',border:'1px solid #1e293b',backgroundColor:'#0f172a',color:isBurstActive?'#3b82f6':'#1e293b',flex:1,cursor:'pointer'}}>STOP</button>
-        <button onClick={()=>{setTorusCash(0);setNodeCount(0);setLogs([]);setIsBurstActive(false);}} style={{padding:'24px 0',borderRadius:'16px',fontSize:'12px',fontWeight:'bold',border:'1px solid #1e293b',backgroundColor:'#0f172a',color:'#64748b',flex:1,cursor:'pointer'}}>RESET</button>
+      {/* Controls */}
+      <div className="flex gap-3 w-full max-w-md mb-4">
+        <button onClick={toggleBurst} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-red-500 transition-all">Stop</button>
+        <button onClick={resetSystem} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-blue-500 transition-all">Reset</button>
       </div>
 
-      <div style={{width:'100%',maxWidth:'440px',backgroundColor:'#000',border:'1px solid #1e293b',borderRadius:'24px',padding:'20px',height:'150px',overflowY:'auto'}}>
-        <div style={{fontSize:'10px',fontWeight:'900',color:'#64748b',marginBottom:'12px'}}>TELEMETRY FEED</div>
-        {logs.map(log=>(<div key={log.id} style={{display:'flex',justifyContent:'space-between',marginBottom:'4px',fontSize:'11px',color:'#94a3b8'}}><span>{log.name}</span><span style={{opacity:0.3}}>{new Date(log.timestamp).toLocaleTimeString()}</span></div>))}
+      {/* Gateway Address */}
+      <div className="w-full max-w-md bg-slate-900/40 border border-slate-800 p-4 rounded-3xl mb-4">
+        <label className="text-[8px] text-slate-600 font-black block mb-2 uppercase tracking-widest">Gateway Address (ngrok/local)</label>
+        <input 
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          type="text" 
+          placeholder="https://..." 
+          className="w-full bg-black/60 border border-slate-700 rounded-xl p-4 text-blue-400 font-bold outline-none focus:border-blue-500 text-xs"
+        />
+      </div>
+
+      {/* Telemetry Feed */}
+      <div className="w-full max-w-md bg-black/60 border border-slate-800 rounded-3xl p-5 h-40 overflow-y-auto shadow-inner text-[10px]">
+        <div className="font-black text-slate-700 mb-3 uppercase tracking-widest">Telemetry Feed</div>
+        <div className="space-y-1 font-mono text-slate-500">
+          {logs.map((log, i) => (
+            <div key={i} className="flex justify-between border-b border-white/5 pb-1">
+              <span>{log.msg}</span><span className="opacity-30">{log.time}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
